@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utkarsh's Maths Mission | Daily Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: ui-sans-serif, system-ui, sans-serif; }
+        .card { background-color: #1e293b; border: 1px solid #334155; }
+        input[type="checkbox"] { accent-color: #38bdf8; width: 1.25rem; height: 1.25rem; }
+        .input-field { background-color: #0f172a; border: 1px solid #334155; color: white; padding: 0.5rem; rounded: 0.375rem; width: 100%; }
+        .input-field:focus { outline: none; border-color: #38bdf8; }
+        /* Custom scrollbar for the history log */
+        .history-scroll::-webkit-scrollbar { width: 6px; }
+        .history-scroll::-webkit-scrollbar-thumb { background-color: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- LEFT COLUMN: Syllabus Tracker -->
+        <div class="lg:col-span-2">
+            <header class="mb-8">
+                <h1 class="text-4xl font-bold text-sky-400 mb-2">Maths 70/80 Tracker</h1>
+                <p class="text-slate-400">Layered Strategy Execution</p>
+            </header>
+
+            <!-- Progress Bar -->
+            <div class="card p-6 rounded-xl mb-8">
+                <div class="flex justify-between items-end mb-2">
+                    <h2 class="text-xl font-semibold">Mastery Level</h2>
+                    <span id="progress-text" class="text-sm text-sky-400 font-bold">0%</span>
+                </div>
+                <div class="w-full bg-slate-700 rounded-full h-3">
+                    <div id="progress-bar" class="bg-sky-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Chapters Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="tasks-container">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Daily Logging -->
+        <div class="space-y-6">
+            <!-- Log Entry Form -->
+            <div class="card p-6 rounded-xl sticky top-8">
+                <h2 class="text-xl font-semibold mb-4 text-emerald-400">Log Today's Work</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">Date</label>
+                        <input type="date" id="log-date" class="input-field rounded-md">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">Hours Studied</label>
+                        <input type="number" id="log-hours" step="0.5" placeholder="e.g. 3.5" class="input-field rounded-md">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">Topics/NCERT Ex Covered</label>
+                        <textarea id="log-notes" rows="3" placeholder="e.g. Watched Matrices One-Shot, solved 10 NCERT examples..." class="input-field rounded-md"></textarea>
+                    </div>
+
+                    <button onclick="saveLog()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-md transition-colors">
+                        Save Entry
+                    </button>
+                </div>
+            </div>
+
+            <!-- History Feed -->
+            <div class="card p-6 rounded-xl">
+                <h2 class="text-xl font-semibold mb-4">Daily Record</h2>
+                <div id="logs-container" class="space-y-4 max-h-[500px] overflow-y-auto history-scroll pr-2">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. SYLLABUS DATA ---
+        const syllabus = [
+            { layer: "Layer 1: Safety Net", chapters: ["Matrices & Determinants", "Linear Programming", "Vectors", "3D Geometry"] },
+            { layer: "Layer 2: Logic Base", chapters: ["Probability", "Relations & Functions", "Inverse Trig"] },
+            { layer: "Layer 3: Calculus", chapters: ["Continuity & Diff", "AOD", "Integrals", "Application of Integrals", "Diff Equations"] },
+            { layer: "Layer 4: Execution", chapters: ["PYQ Paper 1", "PYQ Paper 2", "PYQ Paper 3", "Marking Scheme Analysis"] }
+        ];
+
+        // --- 2. INITIALIZE DATES ---
+        document.getElementById('log-date').valueAsDate = new Date();
+
+        // --- 3. RENDER TRACKER ---
+        function loadTracker() {
+            const savedData = JSON.parse(localStorage.getItem('mathsProgress')) || {};
+            const container = document.getElementById('tasks-container');
+            container.innerHTML = '';
+            
+            let totalTasks = 0;
+            let completedTasks = 0;
+
+            syllabus.forEach((section, sIdx) => {
+                const sectionCard = document.createElement('div');
+                sectionCard.className = 'card p-5 rounded-xl';
+                sectionCard.innerHTML = `<h3 class="font-bold text-sky-300 mb-4 border-b border-slate-700 pb-2">${section.layer}</h3>`;
+                
+                const list = document.createElement('ul');
+                list.className = 'space-y-3';
+
+                section.chapters.forEach((chap, cIdx) => {
+                    totalTasks++;
+                    const id = `task-${sIdx}-${cIdx}`;
+                    const isChecked = savedData[id] ? 'checked' : '';
+                    if (savedData[id]) completedTasks++;
+
+                    list.innerHTML += `
+                        <li class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" id="${id}" ${isChecked} onchange="toggleTask('${id}')" class="mt-1 cursor-pointer">
+                            <label for="${id}" class="text-slate-300 cursor-pointer select-none ${isChecked ? 'line-through text-slate-500' : ''}">${chap}</label>
+                        </li>
+                    `;
+                });
+                
+                sectionCard.appendChild(list);
+                container.appendChild(sectionCard);
+            });
+
+            // Update Progress Bar
+            const percent = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+            document.getElementById('progress-bar').style.width = percent + '%';
+            document.getElementById('progress-text').innerText = `${percent}% (${completedTasks}/${totalTasks})`;
+        }
+
+        function toggleTask(id) {
+            const savedData = JSON.parse(localStorage.getItem('mathsProgress')) || {};
+            savedData[id] = !savedData[id];
+            localStorage.setItem('mathsProgress', JSON.stringify(savedData));
+            loadTracker(); // Re-render to update strike-throughs and progress bar
+        }
+
+        // --- 4. DAILY LOGGING SYSTEM ---
+        function loadLogs() {
+            const logs = JSON.parse(localStorage.getItem('mathsLogs')) || [];
+            const container = document.getElementById('logs-container');
+            container.innerHTML = '';
+
+            if (logs.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 italic text-sm">No logs yet. Start grinding!</p>';
+                return;
+            }
+
+            // Sort logs by date (newest first)
+            logs.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            logs.forEach((log, index) => {
+                const logEl = document.createElement('div');
+                logEl.className = 'bg-slate-800 p-3 rounded-lg border-l-4 border-emerald-500 relative group';
+                
+                // Format date nicely
+                const dateObj = new Date(log.date);
+                const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+                logEl.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold text-emerald-400">${dateStr}</span>
+                        <span class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-300">${log.hours} hrs</span>
+                    </div>
+                    <p class="text-sm text-slate-300 mt-2">${log.notes}</p>
+                    <button onclick="deleteLog(${index})" class="absolute top-2 right-2 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity text-xs hover:text-red-300">✕</button>
+                `;
+                container.appendChild(logEl);
+            });
+        }
+
+        function saveLog() {
+            const date = document.getElementById('log-date').value;
+            const hours = document.getElementById('log-hours').value;
+            const notes = document.getElementById('log-notes').value;
+
+            if (!date || !hours || !notes) {
+                alert("Fill out all fields before saving!");
+                return;
+            }
+
+            const logs = JSON.parse(localStorage.getItem('mathsLogs')) || [];
+            
+            // Check if log for this date already exists to prevent duplicate day entries 
+            // (You can modify this if you want multiple entries per day)
+            const existingIndex = logs.findIndex(l => l.date === date);
+            if (existingIndex > -1) {
+                if(!confirm("You already have an entry for this date. Overwrite it?")) return;
+                logs[existingIndex] = { date, hours, notes };
+            } else {
+                logs.push({ date, hours, notes });
+            }
+
+            localStorage.setItem('mathsLogs', JSON.stringify(logs));
+            
+            // Clear inputs (except date)
+            document.getElementById('log-hours').value = '';
+            document.getElementById('log-notes').value = '';
+            
+            loadLogs();
+        }
+
+        function deleteLog(index) {
+            if(confirm("Delete this log?")) {
+                const logs = JSON.parse(localStorage.getItem('mathsLogs')) || [];
+                logs.splice(index, 1);
+                localStorage.setItem('mathsLogs', JSON.stringify(logs));
+                loadLogs();
+            }
+        }
+
+        // --- 5. INITIALIZATION ---
+        loadTracker();
+        loadLogs();
+    </script>
+</body>
+</html>
