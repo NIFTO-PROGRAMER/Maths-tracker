@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maths 70/80 Tracker | Utkarsh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; }
+        .card { background-color: #1e293b; border: 1px solid #334155; }
+        input[type="checkbox"] { accent-color: #38bdf8; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-bold text-sky-400 mb-2">Maths 70/80 Mission</h1>
+            <p class="text-slate-400">Layered Study Strategy Tracker</p>
+        </header>
+
+        <!-- Progress Overview -->
+        <div class="card p-6 rounded-xl mb-8">
+            <h2 class="text-xl font-semibold mb-4">Overall Completion</h2>
+            <div class="w-full bg-slate-700 rounded-full h-4">
+                <div id="progress-bar" class="bg-sky-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <p id="progress-text" class="mt-2 text-sm text-slate-400">0% Mastered</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="tasks-container">
+            <!-- Content will be injected by JS -->
+        </div>
+    </div>
+
+    <script>
+        const syllabus = [
+            { layer: "Layer 1: The Safety Net (29 Marks)", chapters: ["Matrices & Determinants", "Linear Programming", "Vectors", "3D Geometry"] },
+            { layer: "Layer 2: Standalone Logic (16 Marks)", chapters: ["Probability", "Relations & Functions", "Inverse Trig"] },
+            { layer: "Layer 3: Calculus Mountain (35 Marks)", chapters: ["Continuity & Diff", "AOD", "Integrals", "Application of Integrals", "Differential Equations"] },
+            { layer: "Layer 4: Final Grind", chapters: ["PYQ Paper 1", "PYQ Paper 2", "PYQ Paper 3", "Marking Scheme Review"] }
+        ];
+
+        const container = document.getElementById('tasks-container');
+        
+        function loadTracker() {
+            const savedData = JSON.parse(localStorage.getItem('mathsProgress')) || {};
+            container.innerHTML = '';
+            let totalTasks = 0;
+            let completedTasks = 0;
+
+            syllabus.forEach((section, sIdx) => {
+                const sectionCard = document.createElement('div');
+                sectionCard.className = 'card p-5 rounded-xl';
+                sectionCard.innerHTML = `<h3 class="font-bold text-sky-300 mb-4">${section.layer}</h3>`;
+                
+                const list = document.createElement('ul');
+                list.className = 'space-y-3';
+
+                section.chapters.forEach((chap, cIdx) => {
+                    totalTasks++;
+                    const id = `task-${sIdx}-${cIdx}`;
+                    const checked = savedData[id] ? 'checked' : '';
+                    if (savedData[id]) completedTasks++;
+
+                    list.innerHTML += `
+                        <li class="flex items-center gap-3">
+                            <input type="checkbox" id="${id}" ${checked} onchange="toggleTask('${id}')" class="w-5 h-5">
+                            <label for="${id}" class="text-slate-300 ${checked ? 'line-through opacity-50' : ''}">${chap}</label>
+                        </li>
+                    `;
+                });
+                
+                sectionCard.appendChild(list);
+                container.appendChild(sectionCard);
+            });
+
+            const percent = Math.round((completedTasks / totalTasks) * 100);
+            document.getElementById('progress-bar').style.width = percent + '%';
+            document.getElementById('progress-text').innerText = `${percent}% Mastered (${completedTasks}/${totalTasks} Chapters)`;
+        }
+
+        window.toggleTask = function(id) {
+            const savedData = JSON.parse(localStorage.getItem('mathsProgress')) || {};
+            savedData[id] = !savedData[id];
+            localStorage.setItem('mathsProgress', JSON.stringify(savedData));
+            loadTracker();
+        };
+
+        loadTracker();
+    </script>
+</body>
+</html>
