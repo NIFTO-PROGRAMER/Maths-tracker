@@ -3,222 +3,276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Utkarsh's Maths Mission | Daily Tracker</title>
+    <title>Maths 70/80 | Mission CBSE</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: ui-sans-serif, system-ui, sans-serif; }
-        .card { background-color: #1e293b; border: 1px solid #334155; }
-        input[type="checkbox"] { accent-color: #38bdf8; width: 1.25rem; height: 1.25rem; }
-        .input-field { background-color: #0f172a; border: 1px solid #334155; color: white; padding: 0.5rem; rounded: 0.375rem; width: 100%; }
-        .input-field:focus { outline: none; border-color: #38bdf8; }
-        /* Custom scrollbar for the history log */
-        .history-scroll::-webkit-scrollbar { width: 6px; }
-        .history-scroll::-webkit-scrollbar-thumb { background-color: #334155; border-radius: 4px; }
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap');
+        body { font-family: 'Space Grotesk', sans-serif; background-color: #000000; color: #ffffff; overflow-x: hidden; }
+        .bento-card { background: rgba(15, 15, 15, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .bento-card:hover { border-color: #f59e0b; box-shadow: 0 0 30px rgba(245, 158, 11, 0.1); }
+        .accent-text { color: #f59e0b; }
+        
+        /* Custom Input Styles */
+        input[type="date"], input[type="number"], textarea {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: border-color 0.2s;
+        }
+        input[type="date"]:focus, input[type="number"]:focus, textarea:focus {
+            outline: none;
+            border-color: #f59e0b;
+        }
+        /* Color overrides for date picker icon */
+        ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.5; cursor: pointer; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.1); border-radius: 4px; }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <!-- LEFT COLUMN: Syllabus Tracker -->
-        <div class="lg:col-span-2">
-            <header class="mb-8">
-                <h1 class="text-4xl font-bold text-sky-400 mb-2">Maths 70/80 Tracker</h1>
-                <p class="text-slate-400">Layered Strategy Execution</p>
-            </header>
+<body>
+    <div id="root"></div>
 
-            <!-- Progress Bar -->
-            <div class="card p-6 rounded-xl mb-8">
-                <div class="flex justify-between items-end mb-2">
-                    <h2 class="text-xl font-semibold">Mastery Level</h2>
-                    <span id="progress-text" class="text-sm text-sky-400 font-bold">0%</span>
-                </div>
-                <div class="w-full bg-slate-700 rounded-full h-3">
-                    <div id="progress-bar" class="bg-sky-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-            </div>
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
 
-            <!-- Chapters Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="tasks-container">
-                <!-- Injected via JS -->
-            </div>
-        </div>
-
-        <!-- RIGHT COLUMN: Daily Logging -->
-        <div class="space-y-6">
-            <!-- Log Entry Form -->
-            <div class="card p-6 rounded-xl sticky top-8">
-                <h2 class="text-xl font-semibold mb-4 text-emerald-400">Log Today's Work</h2>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm text-slate-400 mb-1">Date</label>
-                        <input type="date" id="log-date" class="input-field rounded-md">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm text-slate-400 mb-1">Hours Studied</label>
-                        <input type="number" id="log-hours" step="0.5" placeholder="e.g. 3.5" class="input-field rounded-md">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm text-slate-400 mb-1">Topics/NCERT Ex Covered</label>
-                        <textarea id="log-notes" rows="3" placeholder="e.g. Watched Matrices One-Shot, solved 10 NCERT examples..." class="input-field rounded-md"></textarea>
-                    </div>
-
-                    <button onclick="saveLog()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-md transition-colors">
-                        Save Entry
-                    </button>
-                </div>
-            </div>
-
-            <!-- History Feed -->
-            <div class="card p-6 rounded-xl">
-                <h2 class="text-xl font-semibold mb-4">Daily Record</h2>
-                <div id="logs-container" class="space-y-4 max-h-[500px] overflow-y-auto history-scroll pr-2">
-                    <!-- Injected via JS -->
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <script>
-        // --- 1. SYLLABUS DATA ---
-        const syllabus = [
-            { layer: "Layer 1: Safety Net", chapters: ["Matrices & Determinants", "Linear Programming", "Vectors", "3D Geometry"] },
-            { layer: "Layer 2: Logic Base", chapters: ["Probability", "Relations & Functions", "Inverse Trig"] },
-            { layer: "Layer 3: Calculus", chapters: ["Continuity & Diff", "AOD", "Integrals", "Application of Integrals", "Diff Equations"] },
-            { layer: "Layer 4: Execution", chapters: ["PYQ Paper 1", "PYQ Paper 2", "PYQ Paper 3", "Marking Scheme Analysis"] }
+        const SYLLABUS = [
+            { layer: "Layer 1: Safety Net", marks: 29, chapters: ["Matrices & Determinants", "Linear Programming", "Vectors", "3D Geometry"] },
+            { layer: "Layer 2: Logic Base", marks: 16, chapters: ["Probability", "Relations & Functions", "Inverse Trig"] },
+            { layer: "Layer 3: Calculus", marks: 35, chapters: ["Continuity & Diff", "App. of Derivatives", "Integrals", "App. of Integrals", "Diff Equations"] },
+            { layer: "Layer 4: Execution", marks: "Exam", chapters: ["PYQ Paper 1", "PYQ Paper 2", "PYQ Paper 3", "Marking Scheme Analysis"] }
         ];
 
-        // --- 2. INITIALIZE DATES ---
-        document.getElementById('log-date').valueAsDate = new Date();
+        function App() {
+            // State for Checklist
+            const [progress, setProgress] = useState(() => {
+                const saved = localStorage.getItem('math_70_progress');
+                return saved ? JSON.parse(saved) : {};
+            });
 
-        // --- 3. RENDER TRACKER ---
-        function loadTracker() {
-            const savedData = JSON.parse(localStorage.getItem('mathsProgress')) || {};
-            const container = document.getElementById('tasks-container');
-            container.innerHTML = '';
-            
-            let totalTasks = 0;
-            let completedTasks = 0;
+            // State for Daily Logs
+            const [logs, setLogs] = useState(() => {
+                const saved = localStorage.getItem('math_70_logs');
+                return saved ? JSON.parse(saved) : [];
+            });
 
-            syllabus.forEach((section, sIdx) => {
-                const sectionCard = document.createElement('div');
-                sectionCard.className = 'card p-5 rounded-xl';
-                sectionCard.innerHTML = `<h3 class="font-bold text-sky-300 mb-4 border-b border-slate-700 pb-2">${section.layer}</h3>`;
+            // Form State
+            const [dateInput, setDateInput] = useState(new Date().toISOString().split('T')[0]);
+            const [hoursInput, setHoursInput] = useState('');
+            const [notesInput, setNotesInput] = useState('');
+
+            // Save to LocalStorage
+            useEffect(() => {
+                localStorage.setItem('math_70_progress', JSON.stringify(progress));
+                localStorage.setItem('math_70_logs', JSON.stringify(logs));
+                if (window.lucide) window.lucide.createIcons();
+            }, [progress, logs]);
+
+            // Handlers
+            const toggleTask = (id) => {
+                setProgress(prev => ({ ...prev, [id]: !prev[id] }));
+            };
+
+            const handleSaveLog = () => {
+                if (!dateInput || !hoursInput || !notesInput) {
+                    alert("Fill out Date, Hours, and Notes before saving.");
+                    return;
+                }
+
+                const existingIndex = logs.findIndex(l => l.date === dateInput);
+                let newLogs = [...logs];
+
+                if (existingIndex > -1) {
+                    if(!window.confirm("You already have an entry for this date. Overwrite?")) return;
+                    newLogs[existingIndex] = { date: dateInput, hours: parseFloat(hoursInput), notes: notesInput };
+                } else {
+                    newLogs.push({ date: dateInput, hours: parseFloat(hoursInput), notes: notesInput });
+                }
+
+                // Sort newest first
+                newLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
                 
-                const list = document.createElement('ul');
-                list.className = 'space-y-3';
+                setLogs(newLogs);
+                setHoursInput('');
+                setNotesInput('');
+            };
 
-                section.chapters.forEach((chap, cIdx) => {
-                    totalTasks++;
-                    const id = `task-${sIdx}-${cIdx}`;
-                    const isChecked = savedData[id] ? 'checked' : '';
-                    if (savedData[id]) completedTasks++;
+            const deleteLog = (index) => {
+                if(window.confirm("Delete this daily log?")) {
+                    const newLogs = [...logs];
+                    newLogs.splice(index, 1);
+                    setLogs(newLogs);
+                }
+            };
 
-                    list.innerHTML += `
-                        <li class="flex items-start gap-3 cursor-pointer">
-                            <input type="checkbox" id="${id}" ${isChecked} onchange="toggleTask('${id}')" class="mt-1 cursor-pointer">
-                            <label for="${id}" class="text-slate-300 cursor-pointer select-none ${isChecked ? 'line-through text-slate-500' : ''}">${chap}</label>
-                        </li>
-                    `;
+            // Stats Calculation
+            const stats = useMemo(() => {
+                let totalTasks = 0;
+                let doneTasks = 0;
+                let totalHours = 0;
+
+                SYLLABUS.forEach((section, sIdx) => {
+                    section.chapters.forEach((chap, cIdx) => {
+                        totalTasks++;
+                        if (progress[`${sIdx}-${cIdx}`]) doneTasks++;
+                    });
                 });
-                
-                sectionCard.appendChild(list);
-                container.appendChild(sectionCard);
-            });
 
-            // Update Progress Bar
-            const percent = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
-            document.getElementById('progress-bar').style.width = percent + '%';
-            document.getElementById('progress-text').innerText = `${percent}% (${completedTasks}/${totalTasks})`;
-        }
+                logs.forEach(log => {
+                    totalHours += parseFloat(log.hours || 0);
+                });
 
-        function toggleTask(id) {
-            const savedData = JSON.parse(localStorage.getItem('mathsProgress')) || {};
-            savedData[id] = !savedData[id];
-            localStorage.setItem('mathsProgress', JSON.stringify(savedData));
-            loadTracker(); // Re-render to update strike-throughs and progress bar
-        }
+                return {
+                    percent: Math.round((doneTasks / totalTasks) * 100) || 0,
+                    tasksDone: doneTasks,
+                    totalTasks: totalTasks,
+                    totalHours: totalHours.toFixed(1)
+                };
+            }, [progress, logs]);
 
-        // --- 4. DAILY LOGGING SYSTEM ---
-        function loadLogs() {
-            const logs = JSON.parse(localStorage.getItem('mathsLogs')) || [];
-            const container = document.getElementById('logs-container');
-            container.innerHTML = '';
+            return (
+                <div className="min-h-screen p-4 md:p-8 lg:p-12 max-w-[1400px] mx-auto">
+                    {/* Header */}
+                    <header className="mb-12">
+                        <div className="flex flex-col lg:flex-row justify-between items-end gap-8">
+                            <div className="text-left">
+                                <div className="inline-block px-3 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-bold tracking-[0.3em] uppercase mb-4">
+                                    Layered Strategy Dashboard
+                                </div>
+                                <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-none">
+                                    MATHS<br/><span className="accent-text">70/80</span>
+                                </h1>
+                            </div>
+                            
+                            <div className="flex gap-4 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0">
+                                <div className="bento-card p-5 rounded-2xl min-w-[140px] flex-1">
+                                    <p className="text-slate-500 text-[9px] uppercase font-bold tracking-widest mb-1">Mastery</p>
+                                    <p className="text-3xl md:text-4xl font-bold accent-text tabular-nums">{stats.percent}<span className="text-sm text-slate-500 ml-1">%</span></p>
+                                </div>
+                                <div className="bento-card p-5 rounded-2xl min-w-[140px] flex-1 border-l-4 border-l-amber-500">
+                                    <p className="text-slate-500 text-[9px] uppercase font-bold tracking-widest mb-1">Total Grind</p>
+                                    <p className="text-3xl md:text-4xl font-bold tabular-nums">{stats.totalHours}<span className="text-sm text-slate-500 ml-1">hrs</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
 
-            if (logs.length === 0) {
-                container.innerHTML = '<p class="text-slate-500 italic text-sm">No logs yet. Start grinding!</p>';
-                return;
-            }
+                    {/* Main Layout Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        
+                        {/* LEFT: Syllabus Tracker (Takes up 8 cols on large screens) */}
+                        <div className="lg:col-span-8 space-y-6">
+                            <h2 className="text-xl font-bold tracking-tight border-b border-white/10 pb-4">The Execution Roadmap</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {SYLLABUS.map((section, sIdx) => (
+                                    <div key={section.layer} className="bento-card p-6 rounded-3xl flex flex-col">
+                                        <h3 className="text-sm font-bold text-slate-200 mb-6 flex items-start justify-between">
+                                            {section.layer}
+                                            <span className="text-[10px] bg-white/5 px-2 py-1 rounded text-amber-500/80">{section.marks} {typeof section.marks === 'number' ? 'Marks' : ''}</span>
+                                        </h3>
+                                        <div className="space-y-2 mt-auto">
+                                            {section.chapters.map((chap, cIdx) => {
+                                                const id = `${sIdx}-${cIdx}`;
+                                                const isDone = progress[id];
+                                                return (
+                                                    <button 
+                                                        key={chap}
+                                                        onClick={() => toggleTask(id)}
+                                                        className={`w-full text-left p-3 rounded-xl flex items-center gap-3 text-xs font-medium transition-all ${isDone ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-white/[0.02] text-slate-400 border border-transparent hover:bg-white/[0.05]'}`}
+                                                    >
+                                                        <div className={`w-4 h-4 rounded-sm border flex flex-shrink-0 items-center justify-center transition-all ${isDone ? 'bg-amber-500 border-amber-500' : 'border-slate-700'}`}>
+                                                            {isDone && <i data-lucide="check" className="text-black" style={{width: 12, height: 12}}></i>}
+                                                        </div>
+                                                        <span className="leading-snug">{chap}</span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
 
-            // Sort logs by date (newest first)
-            logs.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        {/* RIGHT: Daily Logging (Takes up 4 cols on large screens) */}
+                        <div className="lg:col-span-4 space-y-6">
+                            
+                            {/* Input Form */}
+                            <div className="bento-card p-6 rounded-3xl">
+                                <h2 className="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
+                                    <i data-lucide="pen-tool" style={{width: 14, height: 14}} className="text-amber-500"></i>
+                                    Log Session
+                                </h2>
+                                
+                                <div className="space-y-4 text-sm">
+                                    <div>
+                                        <label className="block text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-2">Date</label>
+                                        <input type="date" value={dateInput} onChange={(e) => setDateInput(e.target.value)} className="w-full p-2.5 rounded-lg text-xs" />
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-2">Hours Studied</label>
+                                        <input type="number" step="0.5" placeholder="e.g. 3.5" value={hoursInput} onChange={(e) => setHoursInput(e.target.value)} className="w-full p-2.5 rounded-lg text-xs placeholder:text-slate-700" />
+                                    </div>
 
-            logs.forEach((log, index) => {
-                const logEl = document.createElement('div');
-                logEl.className = 'bg-slate-800 p-3 rounded-lg border-l-4 border-emerald-500 relative group';
-                
-                // Format date nicely
-                const dateObj = new Date(log.date);
-                const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                                    <div>
+                                        <label className="block text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-2">Topics Covered</label>
+                                        <textarea rows="3" placeholder="Watched One-Shot, solved 10 NCERT examples..." value={notesInput} onChange={(e) => setNotesInput(e.target.value)} className="w-full p-2.5 rounded-lg text-xs resize-none placeholder:text-slate-700"></textarea>
+                                    </div>
 
-                logEl.innerHTML = `
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="text-xs font-bold text-emerald-400">${dateStr}</span>
-                        <span class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-300">${log.hours} hrs</span>
+                                    <button onClick={handleSaveLog} className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-lg transition-colors text-xs uppercase tracking-wider mt-2">
+                                        Commit Log
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* History Feed */}
+                            <div className="bento-card p-6 rounded-3xl flex flex-col h-[400px]">
+                                <h2 className="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
+                                    <i data-lucide="history" style={{width: 14, height: 14}} className="text-amber-500"></i>
+                                    History
+                                </h2>
+                                
+                                <div className="overflow-y-auto pr-2 flex-1 space-y-3">
+                                    {logs.length === 0 ? (
+                                        <p className="text-xs text-slate-600 italic">No data yet. Start the grind.</p>
+                                    ) : (
+                                        logs.map((log, idx) => (
+                                            <div key={idx} className="bg-white/[0.02] border border-white/[0.05] p-3 rounded-xl relative group">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className="text-[10px] font-bold text-amber-500">
+                                                        {new Date(log.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                    </span>
+                                                    <span className="text-[10px] bg-black/50 px-2 py-0.5 rounded text-slate-400 font-mono">{log.hours}h</span>
+                                                </div>
+                                                <p className="text-xs text-slate-300 leading-relaxed">{log.notes}</p>
+                                                <button onClick={() => deleteLog(idx)} className="absolute top-2 right-2 text-red-500/50 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                                                    <i data-lucide="x" style={{width: 12, height: 12}}></i>
+                                                </button>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
-                    <p class="text-sm text-slate-300 mt-2">${log.notes}</p>
-                    <button onclick="deleteLog(${index})" class="absolute top-2 right-2 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity text-xs hover:text-red-300">✕</button>
-                `;
-                container.appendChild(logEl);
-            });
+
+                    <footer className="mt-20 pt-8 border-t border-white/10 flex justify-between items-center text-slate-600">
+                        <p className="text-[9px] uppercase tracking-[0.3em] font-bold">Utkarsh's Personal Dashboard</p>
+                        <p className="text-[9px] italic">Data persists locally.</p>
+                    </footer>
+                </div>
+            );
         }
 
-        function saveLog() {
-            const date = document.getElementById('log-date').value;
-            const hours = document.getElementById('log-hours').value;
-            const notes = document.getElementById('log-notes').value;
-
-            if (!date || !hours || !notes) {
-                alert("Fill out all fields before saving!");
-                return;
-            }
-
-            const logs = JSON.parse(localStorage.getItem('mathsLogs')) || [];
-            
-            // Check if log for this date already exists to prevent duplicate day entries 
-            // (You can modify this if you want multiple entries per day)
-            const existingIndex = logs.findIndex(l => l.date === date);
-            if (existingIndex > -1) {
-                if(!confirm("You already have an entry for this date. Overwrite it?")) return;
-                logs[existingIndex] = { date, hours, notes };
-            } else {
-                logs.push({ date, hours, notes });
-            }
-
-            localStorage.setItem('mathsLogs', JSON.stringify(logs));
-            
-            // Clear inputs (except date)
-            document.getElementById('log-hours').value = '';
-            document.getElementById('log-notes').value = '';
-            
-            loadLogs();
-        }
-
-        function deleteLog(index) {
-            if(confirm("Delete this log?")) {
-                const logs = JSON.parse(localStorage.getItem('mathsLogs')) || [];
-                logs.splice(index, 1);
-                localStorage.setItem('mathsLogs', JSON.stringify(logs));
-                loadLogs();
-            }
-        }
-
-        // --- 5. INITIALIZATION ---
-        loadTracker();
-        loadLogs();
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
